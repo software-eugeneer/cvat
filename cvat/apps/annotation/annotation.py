@@ -107,16 +107,21 @@ class AnnotationIR:
 
         if len(segment_shapes) < len(track['shapes']):
             interpolated_shapes = TrackManager.get_interpolated_shapes(track, start, stop)
+            scoped_shapes = [s for s in interpolated_shapes if AnnotationIR._is_shape_inside(s, start, stop)]
+            drop_count = sum(1 for _ in itertools.takewhile(lambda s: s['outside'], scoped_shapes))
+            scoped_shapes = scoped_shapes[drop_count:]
 
-            for shape in interpolated_shapes:
-                if shape['frame'] == start and \
-                    (not segment_shapes or segment_shapes[0]['frame'] > start):
-                    segment_shapes.insert(0, shape)
-                elif shape['frame'] == stop and \
-                    (not segment_shapes or segment_shapes[-1]['frame'] < stop):
-                    segment_shapes.append(shape)
-            drop_shape_count = sum(1 for _ in itertools.takewhile(lambda s: s['outside'], segment_shapes))
-            segment_shapes = segment_shapes[drop_shape_count:]
+            segment_shapes = []
+            scoped_shapes_count = len(scoped_shapes)
+            if scoped_shapes_count > 1:
+                segment_shapes.append(scoped_shapes[0])
+                segment_shapes.extend(s for s in itertools.islice(scoped_shapes, 1, scoped_shapes_count - 1) if s['keyframe'])
+                segment_shapes.append(scoped_shapes[-1])
+            else:
+                segment_shapes = scoped_shapes
+
+            # Should delete 'interpolation_shapes' and 'keyframe' keys because
+            # Track and TrackedShape models doen't expect these fields
             del track['interpolated_shapes']
             for shape in segment_shapes:
                 del shape['keyframe']
