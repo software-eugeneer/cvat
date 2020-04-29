@@ -537,9 +537,24 @@ class PlayerController {
                 return false;
             });
 
-            const toggleSpecialMode = Logger.shortkeyLogDecorator(() => {
+            const toggleSpecialMode = Logger.shortkeyLogDecorator((e) => {
+                e.preventDefault();
                 this._isSpecialModeEnabled = !this._isSpecialModeEnabled;
                 alert(`SPECIAL MODE ${this._isSpecialModeEnabled ? 'EN' : 'DIS'}ABLED`)
+            });
+
+            const specialModeRemoveLast = Logger.shortkeyLogDecorator((e) => {
+                if (this._isSpecialModeEnabled) {
+                    e.preventDefault();
+                    console.log('Remove last');
+                }
+            });
+
+            const specialModeRemoveAll = Logger.shortkeyLogDecorator((e) => {
+                if (this._isSpecialModeEnabled) {
+                    e.preventDefault();
+                    console.log('Remove all');
+                }
             });
 
             const { shortkeys } = window.cvat.config;
@@ -562,6 +577,8 @@ class PlayerController {
                 this.rotate(-90);
             }, 'keydown');
             Mousetrap.bind(shortkeys.toggle_special_mode.value, toggleSpecialMode, 'keydown');
+            Mousetrap.bind(shortkeys.special_mode_remove_last.value, specialModeRemoveLast, 'keydown');
+            Mousetrap.bind(shortkeys.special_mode_clear_all.value, specialModeRemoveAll, 'keydown');
         }
 
         setupPlayerShortcuts.call(this, playerModel);
@@ -971,17 +988,28 @@ class PlayerView {
 
         this._playerUI.on('contextmenu.playerContextMenu', (e) => {
             if (!window.cvat.mode) {
-                $('.custom-menu').hide(100);
-                this._contextMenuUI.finish().show(100);
-                const x = Math.min(e.pageX, this._playerUI[0].offsetWidth
-                    - this._contextMenuUI[0].scrollWidth);
-                const y = Math.min(e.pageY, this._playerUI[0].offsetHeight
-                    - this._contextMenuUI[0].scrollHeight);
-                this._contextMenuUI.offset({
-                    left: x,
-                    top: y,
-                });
+                if (this._controller._isSpecialModeEnabled) {
+                    console.log('RIGHT CLICK');
+                } else {
+                    $('.custom-menu').hide(100);
+                    this._contextMenuUI.finish().show(100);
+                    const x = Math.min(e.pageX, this._playerUI[0].offsetWidth
+                      - this._contextMenuUI[0].scrollWidth);
+                    const y = Math.min(e.pageY, this._playerUI[0].offsetHeight
+                      - this._contextMenuUI[0].scrollHeight);
+                    this._contextMenuUI.offset({
+                        left: x,
+                        top: y,
+                    });
+                }
                 e.preventDefault();
+            }
+        });
+
+        this._playerUI.on('click', (e) => {
+            if (!window.cvat.mode && this._controller._isSpecialModeEnabled) {
+                e.preventDefault();
+                console.log('LEFT CLICK');
             }
         });
 
