@@ -148,6 +148,9 @@ class PlayerModel extends Listener {
             fps: 25,
             rotateAll: task.mode === 'interpolation',
             resetZoom: task.mode === 'annotation',
+            specialModeRoiSize: 128,
+            specialModeSimplificationCoefficient: 0.01,
+            specialModeMarkerSize: 5,
         };
 
         this._playInterval = null;
@@ -221,6 +224,30 @@ class PlayerModel extends Listener {
         }
 
         this.fit();
+    }
+
+    get roiSize() {
+        return this._settings.specialModeRoiSize;
+    }
+
+    set roiSize(value) {
+        this._settings.specialModeRoiSize = value;
+    }
+
+    get simplificationCoefficient() {
+        return this._settings.specialModeSimplificationCoefficient;
+    }
+
+    set simplificationCoefficient(value) {
+        this._settings.specialModeSimplificationCoefficient = value;
+    }
+
+    get markerSize() {
+        return this._settings.specialModeMarkerSize;
+    }
+
+    set markerSize(value) {
+        this._settings.specialModeMarkerSize = value;
     }
 
     set fps(value) {
@@ -442,6 +469,7 @@ class PlayerController {
             jump: null,
             move: null,
         };
+        this._isSpecialModeEnabled = false;
 
         function setupPlayerShortcuts(playerModel) {
             const nextHandler = Logger.shortkeyLogDecorator((e) => {
@@ -509,6 +537,11 @@ class PlayerController {
                 return false;
             });
 
+            const toggleSpecialMode = Logger.shortkeyLogDecorator(() => {
+                this._isSpecialModeEnabled = !this._isSpecialModeEnabled;
+                alert(`SPECIAL MODE ${this._isSpecialModeEnabled ? 'EN' : 'DIS'}ABLED`)
+            });
+
             const { shortkeys } = window.cvat.config;
 
             Mousetrap.bind(shortkeys.next_frame.value, nextHandler, 'keydown');
@@ -528,6 +561,7 @@ class PlayerController {
                 e.preventDefault();
                 this.rotate(-90);
             }, 'keydown');
+            Mousetrap.bind(shortkeys.toggle_special_mode.value, toggleSpecialMode, 'keydown');
         }
 
         setupPlayerShortcuts.call(this, playerModel);
@@ -696,6 +730,30 @@ class PlayerController {
     set rotateAll(value) {
         this._model.rotateAll = value;
     }
+
+    get roiSize() {
+        return this._model.roiSize;
+    }
+
+    set roiSize(value) {
+        this._model.roiSize = value;
+    }
+
+    get simplificationCoefficient() {
+        return this._model.simplificationCoefficient;
+    }
+
+    set simplificationCoefficient(value) {
+        this._model.simplificationCoefficient = value;
+    }
+
+    get markerSize() {
+        return this._model.markerSize;
+    }
+
+    set markerSize(value) {
+        this._model.markerSize = value;
+    }
 }
 
 
@@ -728,6 +786,9 @@ class PlayerView {
         this._counterClockwiseRotationButtonUI = $('#counterClockwiseRotation');
         this._rotationWrapperUI = $('#rotationWrapper');
         this._rotatateAllImagesUI = $('#rotateAllImages');
+        this._roiSize = $('#specialModeRoiSize');
+        this._simplificationCoefficient = $('#specialModeSimplificationCoefficient');
+        this._markerSize = $('#specialModeMarkerSize');
 
         this._clockwiseRotationButtonUI.on('click', () => {
             this._controller.rotate(90);
@@ -740,6 +801,21 @@ class PlayerView {
         this._rotatateAllImagesUI.prop('checked', this._controller.rotateAll);
         this._rotatateAllImagesUI.on('change', (e) => {
             this._controller.rotateAll = e.target.checked;
+        });
+
+        this._roiSize.prop('value', this._controller.roiSize);
+        this._roiSize.on('change', (e) => {
+            this._controller.roiSize = e.target.value;
+        });
+
+        this._simplificationCoefficient.prop('value', this._controller.simplificationCoefficient);
+        this._simplificationCoefficient.on('change', (e) => {
+            this._controller.simplificationCoefficient = e.target.value;
+        });
+
+        this._markerSize.prop('value', this._controller.markerSize);
+        this._markerSize.on('change', (e) => {
+            this._controller.markerSize = e.target.value;
         });
 
         $('*').on('mouseup.player', () => this._controller.frameMouseUp());

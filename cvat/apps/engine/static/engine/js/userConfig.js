@@ -303,6 +303,24 @@ class Config {
                 view_value: 'Alt + <',
                 description: 'switch previous default shape type',
             },
+
+            toggle_special_mode: {
+                value: ['f4'],
+                view_value: 'F4',
+                description: 'Toggle special mode',
+            },
+
+            special_mode_remove_last: {
+                value: ['backspace'],
+                view_value: 'Backspace',
+                description: 'Remove last dot when in special mode',
+            },
+
+            special_mode_clear_all: {
+                value: ['space'],
+                view_value: 'Space',
+                description: 'Clear added dots when in special mode',
+            },
         };
 
         if (window.cvat && window.cvat.job && window.cvat.job.z_order) {
@@ -343,6 +361,21 @@ class Config {
             auto_save_interval: {
                 value: '15',
                 description: 'auto save interval (min)',
+            },
+
+            roi_size: {
+                value: '128',
+                description: 'ROI size',
+            },
+
+            simplification_coefficient: {
+                value: '0.01',
+                description: 'Simplification coefficient',
+            },
+
+            marker_size: {
+                value: '5',
+                description: 'Marker size',
             },
         };
 
